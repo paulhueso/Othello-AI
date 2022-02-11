@@ -18,8 +18,21 @@ class Board:
                 print(text, end=" | ")
             print()
 
-    def getPossibleMoves(self):
-        
+    def detectAround(self, x ,y ,colorCheck):
+        directions = []
+        for j in range(-1, 2):
+           for i in range(-1, 2):
+                newX = x + i
+                newY = y + j
+                if(newX < 0
+                otherColor = self.board[y + j][x + i]
+                if(otherColor != self.empty and colorCheck != otherColor):
+                    directions.append((i,j))
+        return directions
+               
+    def isPlayable(self, x, y):
+        if(x < 0 or x > 7 or y < 0 or y > 7):
+            return False
         
 
 othello = Board()
