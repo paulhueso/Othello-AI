@@ -1,5 +1,6 @@
 import time
 import random
+# TODO: créer une fonction qui récupère toutes les positions des jetons d'un joueur (peut être implémenter un tableau qui est modifié selon les positions des jetons)
 
 class Board:
     """Core game for Othello"""
