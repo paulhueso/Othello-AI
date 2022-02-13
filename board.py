@@ -26,9 +26,9 @@ class Board:
         print(result)
 
     def display(self, board):
-        self.displayScores()
+        self.displayScores(board)
         text = ""
-        for row in self.board:
+        for row in board:
             for slot in row:
                 if(slot == self.player1):
                     text += "_○_|"
@@ -130,13 +130,12 @@ class Board:
                         newX = x + directionX * nbOfSlots
                         newY = y + directionY * nbOfSlots
                         newSlot = board[newY][newX]
-            return True
-        return False
+        return board
 
     def playProposition(self, board, indexToPlay, colorCheck):
         slots = self.getAllSlotsAvailable(board, colorCheck)
         if(indexToPlay < 0 or indexToPlay >= len(slots)):
-            return False
+            return board
         x,y = slots[indexToPlay]
         return self.playSlot(board, x, y, colorCheck)
 

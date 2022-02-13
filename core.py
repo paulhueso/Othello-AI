@@ -1,6 +1,7 @@
 import time
 import random
 import board
+import ia
 # TODO: créer une fonction qui récupère toutes les positions des jetons d'un joueur (peut être implémenter un tableau qui est modifié selon les positions des jetons)
 
 class Core:
@@ -48,7 +49,11 @@ class Core:
 
     def choosePlayers(self):
         p1 = (self.board.player1, self.choosePlayer(1))
+        if(p1[1] == 1):
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, 5)
         p2 = (self.board.player2, self.choosePlayer(2))
+        if(p2[1] == 1):
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, 5)
         return [p1, p2]
 
     def doTurn(self, player, times):
@@ -68,10 +73,17 @@ class Core:
             x,y = slots[choice]
             self.board.playSlot(self.currentBoard, x, y, color)
         elif(nbType == 1): # IA
-            print("IA NOT IMPLEMENTED YET !")
-            start = time.time()
-            end = time.time()
-            times[color - 1] += end - start
+            if(color == self.board.player1):
+                start = time.time()
+                bestMove = self.ia1.startMinMax(self.currentBoard)
+                end = time.time()
+                times[0] += end - start
+            else:
+                start = time.time()
+                bestMove = self.ia2.startMinMax(self.currentBoard)
+                end = time.time()
+                times[1] += end - start
+            self.board.playProposition(self.currentBoard, bestMove[0], color)
         elif(nbType == 2):
             start = time.time()
             slot = random.choice(slots)
