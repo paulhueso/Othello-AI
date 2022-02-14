@@ -22,7 +22,7 @@ class Board:
         scores = self.getScores(board)
         score1 = "○: " + str(scores[0]).center(2, " ")
         score2 = "●: " + str(scores[1]).center(2, " ")
-        result = (score1 + "  -  " + score2).center(32, " ")
+        result = (score1 + " -  " + score2).center(32, " ")
         print(result)
 
     def display(self, board):

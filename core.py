@@ -38,7 +38,7 @@ class Core:
         human = ["y", "Y", "Yes", "Oui", "oui", "o"]
         ia = ["n", "N", "No", "Non", "Non"]
         random = ["r", "R", "random", "Random", "rand", "Rand"]
-        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " a human ?")
+        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " a human, an ai or a random ?")
         if(p in human):
             p = 0
         elif(p in ia):
@@ -50,10 +50,10 @@ class Core:
     def choosePlayers(self):
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, 5)
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, 6)
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, 5)
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, 6)
         return [p1, p2]
 
     def doTurn(self, player, times):
@@ -75,16 +75,16 @@ class Core:
         elif(nbType == 1): # IA
             if(color == self.board.player1):
                 start = time.time()
-                bestMove = self.ia1.startMinMax(self.currentBoard)
+                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard)
                 end = time.time()
                 times[0] += end - start
             else:
                 start = time.time()
-                bestMove = self.ia2.startMinMax(self.currentBoard)
+                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard)
                 end = time.time()
                 times[1] += end - start
             self.board.playProposition(self.currentBoard, bestMove[0], color)
-        elif(nbType == 2):
+        elif(nbType == 2): # random
             start = time.time()
             slot = random.choice(slots)
             x,y = slot
@@ -93,6 +93,27 @@ class Core:
             times[color - 1] += end - start
         return True
 
+    def saveScores(self, result1, result2):
+        lines = []
+        print("Saving scores...", end=" ")
+        try:
+            with open("scores.txt", "r") as f:
+                lines = f.readlines()
+        except(FileNotFoundError):
+            print("The file 'scores.txt' couldn't be found !")
+        with open("scores.txt","w") as f:
+            found = False
+            for score in lines:
+                type1,type2,score1,score2 = score.split(" ")
+                type1,type2,score1,score2 = int(type1),int(type2),int(score1),int(score2)
+                if(type1 == result1[0] and type2 == result2[0]):
+                    score1 += result1[1]
+                    score2 += result2[1]
+                    found = True
+                f.write(str(type1) + " " + str(type2) + " " + str(score1) + " " + str(score2) + "\n")
+            if(not(found)):
+                f.write(str(result1[0]) + " " + str(result2[0]) + " " + str(result1[1]) + " " + str(result2[1]) + "\n")
+        print("Done !")
             
     def runOthello(self):
         players = self.choosePlayers()
@@ -100,7 +121,7 @@ class Core:
         played2 = True
         turns = 0
         times = [0,0]
-        while(played1 and played2):
+        while(played1 or played2):
             turns += 1
             played1 = self.doTurn(players[0], times)
             if(not(played1)):
@@ -111,11 +132,13 @@ class Core:
         scores = self.board.getScores(self.currentBoard)
         if(scores[0] > scores[1]):
             print("The player" + str(self.board.player1) + " wins the game with a score of " + str(scores[0]) + " !")
+            self.saveScores((players[0][1], 1),(players[1][1], 0))
         else:
             print("The player" + str(self.board.player2) + " wins the game with a score of " + str(scores[1]) + " !")
+            self.saveScores((players[0][1], 0),(players[1][1], 1))
         print("The average time for player1 is : " + str(times[0] / turns) + " s !")
         print("The average time for player2 is : " + str(times[1] / turns) + " s !")
-    
+
 
 core = Core()
 core.runOthello()
