@@ -26,30 +26,6 @@ class IA:
         playerScore = self.score(currentBoard, self.color)
         opponentScore = self.score(currentBoard, self.otherColor)
         return playerScore - opponentScore
-        # Heuristic positionnel
-        """positional1 = 
-        [
-            [500, -150, 30, 10, 10, 10, 30, -150, 500]
-            [-150, -250, 0, 0, 0, 0, -250, -150]
-            [30, 0, 1, 2, 2, 1, 0, 30]
-            [10, 0, 2, 16, 16, 2, 0, 10]
-            [10, 0, 2, 16, 16, 2, 0, 10]
-            [30, 0, 1, 2, 2, 1, 0, 30]
-            [-150, -250, 0, 0, 0, 0, -250, -150]
-            [500, -150, 30, 10, 10, 10, 30, -150, 500]
-        ]
-
-        positional2 =
-        [
-            [100, -20, 10, 5, 5, 10, -20, 100]
-            [-20, -50, -2, -2, -2, -2, -50, -20]
-            [10, -2, -1, -1, -1, -1, -2, 10]
-            [5, -2, -1, -1, -1, -1, -2, 5]
-            [5, -2, -1, -1, -1, -1, -2, 5]
-            [10, -2, -1, -1, -1, -1, -2, 10]
-            [-20, -50, -2, -2, -2, -2, -50, -20]
-            [100, -20, 10, 5, 5, 10, -20, 100]
-        ]"""
 
     def startMinMax(self, board):
         newBoard = copy.deepcopy(board)
@@ -68,7 +44,7 @@ class IA:
             if(len(moves) == 0):
                 return (-1, self.heuristic(currentBoard, self.color))
             bestMove = (-1, -10000000)
-            for i in range(len(moves)):  #Pour chaque possibilités
+            for i in range(len(moves)):
                 newBoard = self.board.playProposition(copy.deepcopy(currentBoard),i,self.color)
                 value = self.minmax(newBoard, depth - 1, False)
                 if(bestMove[1] < value[1]):

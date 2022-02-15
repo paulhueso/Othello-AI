@@ -35,8 +35,8 @@ class Core:
         return x
 
     def choosePlayer(self, numPlayer):
-        human = ["y", "Y", "Yes", "Oui", "oui", "o"]
-        ia = ["n", "N", "No", "Non", "Non"]
+        human = ["h", "H", "human", "Human"]
+        ia = ["i","I","ia","IA","AI","ai","a"]
         random = ["r", "R", "random", "Random", "rand", "Rand"]
         p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " a human, an ai or a random ?")
         if(p in human):
@@ -50,15 +50,17 @@ class Core:
     def choosePlayers(self):
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, 6)
+            depth = input("AI depth: ")
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth))
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, 6)
+            depth = input("AI depth: ")
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth))
         return [p1, p2]
 
     def doTurn(self, player, times):
         color, nbType = player
-        print("It's the turn to player " + str(color) + " !")
+        print("Player " + str(color) + ": ")
         self.board.displayPossibilities(self.currentBoard, color)
         slots = self.board.getAllSlotsAvailable(self.currentBoard, color)
         if(len(slots) == 0):
