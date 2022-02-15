@@ -52,13 +52,13 @@ class Core:
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
             depth = input("\nAI depth: ")
-            strategie = input("\nStrategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategie))
+            strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategy))
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
             depth = input("AI depth: ")
-            strategie = input("\nStrategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategie))
+            strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategy))
         return [p1, p2]
 
     def doTurn(self, player, times):

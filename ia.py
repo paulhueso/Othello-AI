@@ -5,35 +5,35 @@ import copy
 class IA:
     """IA implentation for othello"""
 
-    def __init__(self, color, otherColor, depth = 3, strategie = 1):
+    def __init__(self, color, otherColor, depth = 3, strategy = 1):
         self.depth = depth
         self.board = board.Board()
         self.color = color
         self.otherColor = otherColor
-        self.strategie = strategie
+        self.strategy = strategy
         self.numberOfMoves = 0
 
     def score(self, currentBoard, color):
         score = 0
-        mixteStrat = -1
-        #Stratégie Mixte
-        if(self.strategie == 4):
-            mixteStrat = 3
+        mixteStrategy = -1
+        #Mixte strategy
+        if(self.strategy == 4):
+            mixteStrategy = 3
             if(self.numberOfMoves < 15):
-                mixteStrat = 2
+                mixteStrategy = 2
             elif(self.numberOfMoves > 50):
-                mixteStrat = 1
+                mixteStrategy = 1
 
-        #Stratégie absolue
-        if(self.strategie == 1 or mixteStrat == 1):
+        #Absolute strategy
+        if(self.strategy == 1 or mixteStrategy == 1):
             for j in range(8):
                 for i in range(8):
                     slot = currentBoard[j][i]
                     score += (color == slot)
             return score
         
-        #Stratégie positionnelle
-        elif(self.strategie == 2 or mixteStrat == 2):
+        #Positional strategy
+        elif(self.strategy == 2 or mixteStrategy == 2):
             positional = [[500, -150, 30, 10, 10, 10, 30, -150, 500],[-150, -250, 0, 0, 0, 0, -250, -150],[30, 0, 1, 2, 2, 1, 0, 30],[10, 0, 2, 16, 16, 2, 0, 10],[10, 0, 2, 16, 16, 2, 0, 10],[30, 0, 1, 2, 2, 1, 0, 30],[-150, -250, 0, 0, 0, 0, -250, -150],[500, -150, 30, 10, 10, 10, 30, -150, 500]]
             #positional = [[100, -20, 10, 5, 5, 10, -20, 100],[-20, -50, -2, -2, -2, -2, -50, -20],[10, -2, -1, -1, -1, -1, -2, 10],[5, -2, -1, -1, -1, -1, -2, 5],[5, -2, -1, -1, -1, -1, -2, 5],[10, -2, -1, -1, -1, -1, -2, 10],[-20, -50, -2, -2, -2, -2, -50, -20],[100, -20, 10, 5, 5, 10, -20, 100]]
             for j in range(8):
@@ -42,8 +42,8 @@ class IA:
                     score += (color == slot)*positional[j][i]
             return score
         
-        #Stratégie mobilité
-        elif(self.strategie == 3 or mixteStrat == 3):
+        #Mobility strategy
+        elif(self.strategy == 3 or mixteStrategy == 3):
             possibleMoves = self.board.getAllSlotsAvailable(currentBoard, color)
             return len(possibleMoves)
 
@@ -61,7 +61,6 @@ class IA:
         return bestMove
 
     # Basic minmax function
-    # maximizePlayer dépend du premier joueur qui joue (noir commence puis blanc)
     def minmax(self, currentBoard, depth, maximizePlayer):
         if(depth == 0):
             return (-1, self.heuristic(currentBoard, int(maximizePlayer)*self.color + int(not(maximizePlayer))*self.otherColor))
@@ -104,7 +103,7 @@ class IA:
             if(len(moves) == 0):
                 return (-1, self.heuristic(currentBoard, self.color))
             bestMove = (-1, -10000000)
-            for i in range(len(moves)): #Pour chaque possibilités
+            for i in range(len(moves)):
                 newBoard = self.board.playProposition(copy.deepcopy(currentBoard), i, self.color)
                 value = self.minmaxAlphaBeta(newBoard, depth - 1, alpha, beta, False)
                 if(bestMove[1] < value[1]):
