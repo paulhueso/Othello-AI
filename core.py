@@ -38,7 +38,7 @@ class Core:
         human = ["h", "H", "human", "Human"]
         ia = ["i","I","ia","IA","AI","ai","a"]
         random = ["r", "R", "random", "Random", "rand", "Rand"]
-        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " a human, an ai or a random ?")
+        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " Human, an AI or Random ?")
         if(p in human):
             p = 0
         elif(p in ia):
@@ -51,11 +51,13 @@ class Core:
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
             depth = input("AI depth: ")
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth))
+            strategie = input("Strategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategie))
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
             depth = input("AI depth: ")
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth))
+            strategie = input("Strategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategie))
         return [p1, p2]
 
     def doTurn(self, player, times):
