@@ -11,12 +11,21 @@ class IA:
         self.color = color
         self.otherColor = otherColor
         self.strategie = strategie
+        self.numberOfMoves = 0
 
     def score(self, currentBoard, color):
         score = 0
+        mixteStrat = -1
+        #Stratégie Mixte
+        if(self.strategie == 4):
+            mixteStrat = 3
+            if(self.numberOfMoves < 15):
+                mixteStrat = 2
+            elif(self.numberOfMoves > 50):
+                mixteStrat = 1
 
         #Stratégie absolue
-        if(self.strategie == 1):
+        if(self.strategie == 1 or mixteStrat == 1):
             for j in range(8):
                 for i in range(8):
                     slot = currentBoard[j][i]
@@ -24,7 +33,7 @@ class IA:
             return score
         
         #Stratégie positionnelle
-        elif(self.strategie == 2):
+        elif(self.strategie == 2 or mixteStrat == 2):
             positional = [[500, -150, 30, 10, 10, 10, 30, -150, 500],[-150, -250, 0, 0, 0, 0, -250, -150],[30, 0, 1, 2, 2, 1, 0, 30],[10, 0, 2, 16, 16, 2, 0, 10],[10, 0, 2, 16, 16, 2, 0, 10],[30, 0, 1, 2, 2, 1, 0, 30],[-150, -250, 0, 0, 0, 0, -250, -150],[500, -150, 30, 10, 10, 10, 30, -150, 500]]
             #positional = [[100, -20, 10, 5, 5, 10, -20, 100],[-20, -50, -2, -2, -2, -2, -50, -20],[10, -2, -1, -1, -1, -1, -2, 10],[5, -2, -1, -1, -1, -1, -2, 5],[5, -2, -1, -1, -1, -1, -2, 5],[10, -2, -1, -1, -1, -1, -2, 10],[-20, -50, -2, -2, -2, -2, -50, -20],[100, -20, 10, 5, 5, 10, -20, 100]]
             for j in range(8):
@@ -34,11 +43,9 @@ class IA:
             return score
         
         #Stratégie mobilité
-        elif(self.strategie == 3):
-            aiMoves = self.board.getAllSlotsAvailable(currentBoard, self.color)
-            opponentMoves = self.board.getAllSlotsAvailable(currentBoard, self.otherColor)
-
-            return len(aiMoves) - len(opponentMoves)
+        elif(self.strategie == 3 or mixteStrat == 3):
+            possibleMoves = self.board.getAllSlotsAvailable(currentBoard, color)
+            return len(possibleMoves)
 
 
     def heuristic(self, currentBoard, color):
@@ -46,7 +53,8 @@ class IA:
         opponentScore = self.score(currentBoard, self.otherColor)
         return playerScore - opponentScore
 
-    def startMinMax(self, board):
+    def startMinMax(self, board, numberOfMoves):
+        self.numberOfMoves = numberOfMoves
         newBoard = copy.deepcopy(board)
         bestMove = self.minmax(newBoard, self.depth, True)
         print("The AI played the choice n°" + str(bestMove[0]) + " with a score of " + str(bestMove[1]) + ".")
@@ -80,7 +88,8 @@ class IA:
                     bestMove = (i, value[1])
         return bestMove
 
-    def startMinMaxAlphaBeta(self, board):
+    def startMinMaxAlphaBeta(self, board, numberOfMoves):
+        self.numberOfMoves = numberOfMoves
         newBoard = copy.deepcopy(board)
         bestMove = self.minmaxAlphaBeta(newBoard, self.depth, -10000000, 10000000, True)
         print("The AI played the choice n°" + str(bestMove[0]) + " with a score of " + str(bestMove[1]) + ".")

@@ -16,7 +16,8 @@ class Core:
         self.currentBoard[4][3] = self.board.player2
         self.currentBoard[3][4] = self.board.player2
         self.currentBoard[4][4] = self.board.player1
-        
+        self.numberOfMoves = 0
+
     def inputInArray(self, array, question = "Please, choose.", error = "Votre entrée n'est pas valide."):
         x = ""
         if(len(array) == 0):
@@ -50,13 +51,13 @@ class Core:
     def choosePlayers(self):
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
-            depth = input("AI depth: ")
-            strategie = input("Strategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
+            depth = input("\nAI depth: ")
+            strategie = input("\nStrategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
             self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategie))
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
             depth = input("AI depth: ")
-            strategie = input("Strategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
+            strategie = input("\nStrategie : \n1) Absolue\n2) Positionnelle\n3) Mobilité\n4) Mixte (Recommended)\nChoice: ")
             self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategie))
         return [p1, p2]
 
@@ -79,12 +80,12 @@ class Core:
         elif(nbType == 1): # IA
             if(color == self.board.player1):
                 start = time.time()
-                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard)
+                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
                 end = time.time()
                 times[0] += end - start
             else:
                 start = time.time()
-                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard)
+                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
                 end = time.time()
                 times[1] += end - start
             self.board.playProposition(self.currentBoard, bestMove[0], color)
@@ -95,6 +96,7 @@ class Core:
             self.board.playSlot(self.currentBoard, x, y, color)
             end = time.time()
             times[color - 1] += end - start
+        self.numberOfMoves += 1
         return True
 
     def saveScores(self, result1, result2):
