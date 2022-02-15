@@ -131,13 +131,13 @@ class Core:
             turns += 1
             played1 = self.doTurn(players[0], times)
             if(not(played1)):
-                print("The player1 can't play !")
+                print("Player1 can't play !")
             played2 = self.doTurn(players[1], times)
             if(not(played2)):
-                print("The player2 can't play !")
+                print("Player2 can't play !")
         scores = self.board.getScores(self.currentBoard)
         if(scores[0] > scores[1]):
-            print("The player" + str(self.board.player1) + " wins the game with a score of " + str(scores[0]) + " !")
+            print("Player" + str(self.board.player1) + " wins the game with a score of " + str(scores[0]) + " !")
             self.saveScores((players[0][1], 1),(players[1][1], 0))
         else:
             print("The player" + str(self.board.player2) + " wins the game with a score of " + str(scores[1]) + " !")
