@@ -16,7 +16,8 @@ class Core:
         self.currentBoard[4][3] = self.board.player2
         self.currentBoard[3][4] = self.board.player2
         self.currentBoard[4][4] = self.board.player1
-        
+        self.numberOfMoves = 0
+
     def inputInArray(self, array, question = "Please, choose.", error = "Votre entrée n'est pas valide."):
         x = ""
         if(len(array) == 0):
@@ -38,7 +39,7 @@ class Core:
         human = ["h", "H", "human", "Human"]
         ia = ["i","I","ia","IA","AI","ai","a"]
         random = ["r", "R", "random", "Random", "rand", "Rand"]
-        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " a human, an ai or a random ?")
+        p = self.inputInArray(human + ia + random, "Is the player" + str(numPlayer) + " Human, an AI or Random ?")
         if(p in human):
             p = 0
         elif(p in ia):
@@ -50,12 +51,14 @@ class Core:
     def choosePlayers(self):
         p1 = (self.board.player1, self.choosePlayer(1))
         if(p1[1] == 1):
-            depth = input("AI depth: ")
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth))
+            depth = input("\nAI depth: ")
+            strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategy))
         p2 = (self.board.player2, self.choosePlayer(2))
         if(p2[1] == 1):
             depth = input("AI depth: ")
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth))
+            strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategy))
         return [p1, p2]
 
     def doTurn(self, player, times):
@@ -77,12 +80,12 @@ class Core:
         elif(nbType == 1): # IA
             if(color == self.board.player1):
                 start = time.time()
-                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard)
+                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
                 end = time.time()
                 times[0] += end - start
             else:
                 start = time.time()
-                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard)
+                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
                 end = time.time()
                 times[1] += end - start
             self.board.playProposition(self.currentBoard, bestMove[0], color)
@@ -93,6 +96,7 @@ class Core:
             self.board.playSlot(self.currentBoard, x, y, color)
             end = time.time()
             times[color - 1] += end - start
+        self.numberOfMoves += 1
         return True
 
     def saveScores(self, result1, result2):
@@ -127,13 +131,13 @@ class Core:
             turns += 1
             played1 = self.doTurn(players[0], times)
             if(not(played1)):
-                print("The player1 can't play !")
+                print("Player1 can't play !")
             played2 = self.doTurn(players[1], times)
             if(not(played2)):
-                print("The player2 can't play !")
+                print("Player2 can't play !")
         scores = self.board.getScores(self.currentBoard)
         if(scores[0] > scores[1]):
-            print("The player" + str(self.board.player1) + " wins the game with a score of " + str(scores[0]) + " !")
+            print("Player" + str(self.board.player1) + " wins the game with a score of " + str(scores[0]) + " !")
             self.saveScores((players[0][1], 1),(players[1][1], 0))
         else:
             print("The player" + str(self.board.player2) + " wins the game with a score of " + str(scores[1]) + " !")
