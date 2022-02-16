@@ -148,9 +148,9 @@ class IA:
 
     ##  minimax et negamax sont les même algo mais implémentés différements, ils ont donc les même performances ##
 
-        def negamax(self, currentBoard, depth, player):
-            if(depth == 0 or game_over(currentBoard)):
-                return self.heuristic(currentBoard)
+    def negamax(self, currentBoard, depth, player):
+        if(depth == 0 or game_over(currentBoard)):
+            return self.heuristic(currentBoard)
 
         moves = Core.Board.getAllSlotsAvailable(currentBoard, self.color)
 
