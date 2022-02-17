@@ -30,7 +30,7 @@ class Training:
         avgTimePerGame = self.totalTime / (self.currentNbGeneration * (self.nbParticipants - 1))
         print("The average time per game is " + str(avgTimePerGame) + "s.")
         estimatedTime = avgTimePerGame * (self.nbParticipants - 1) * (self.nbGenerations - self.currentNbGeneration)
-        print("The estimated time of arrival is : " + str(int(estimatedTime / 60)) + "m " + str(int(estimatedTime) % 60) +"s.")
+        print("The estimated time of arrival is : " + str(int(estimatedTime / 60)) + "m " + str(int(estimatedTime) % 60) +"s. (" + str(self.currentNbGeneration * 100 / self.nbGenerations) + "%)")
         print("End of generation n°" + str(self.currentNbGeneration) + " .")
     
     def regenerateGeneration(self):
@@ -38,8 +38,9 @@ class Training:
         currentMutationRatio = 0.05
         for i in range(1, self.nbParticipants):
             self.currentGeneration.append(copy.deepcopy(self.bestOfLastGeneration))
-            self.currentGeneration[i].mutate(currentMutationRatio)
-            currentMutationRatio += 0.05
+            for _ in range(3):
+                self.currentGeneration[i].mutate(currentMutationRatio)
+                currentMutationRatio += 0.01
     
     def doTournament(self):
         nextRound = [i for i in range(self.nbParticipants)]
@@ -86,12 +87,11 @@ class Training:
 
     
     def runTraining(self, nbGenerations, fileBest = None):
-        avgTimePerGame = 0
         self.currentNbGeneration = 0
         self.nbGenerations = nbGenerations
         self.totalTime = 0
         print("Started the training of the AI with " + str(nbGenerations) + " generations, and " + str(self.nbParticipants) + " participants per tournament.")
-        if(not(fileBest == None)):
+        if(not(fileBest == None or fileBest == "")):
             self.bestOfLastGeneration = neuralNetwork.NeuralNetwork()
             self.bestOfLastGeneration.load(fileBest)
         else:

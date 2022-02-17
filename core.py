@@ -44,8 +44,8 @@ class Core:
         human = ["h", "H", "human", "Human"]
         ia = ["i","I","ia","IA","AI","ai","a"]
         random = ["r", "R", "random", "Random", "rand", "Rand"]
-        neural = ["n"]
-        p = self.inputInArray(human + ia + random + neural, "Is the player" + str(numPlayer) + " Human, an AI or Random ?")
+        neural = ["n", "N", "Neural", "NEURAL"]
+        p = self.inputInArray(human + ia + random + neural, "Is the player" + str(numPlayer) + " Human, an AI, a Neural Network or Random ?")
         if(p in human):
             p = 0
         elif(p in ia):
@@ -77,10 +77,11 @@ class Core:
             self.neural2.load(fileName)
         return [p1, p2]
 
-    def doTurn(self, player, times):
+    def doTurn(self, player, times, display = True):
         color, nbType = player
-        print("Player " + str(color) + ": ")
-        self.board.displayPossibilities(self.currentBoard, color)
+        if(display):
+            print("Player " + str(color) + ": ")
+            self.board.displayPossibilities(self.currentBoard, color)
         slots = self.board.getAllSlotsAvailable(self.currentBoard, color)
         if(len(slots) == 0):
             return False
@@ -174,17 +175,44 @@ class Core:
         print("The average time for player1 is : " + str(times[0] / turns) + " s !")
         print("The average time for player2 is : " + str(times[1] / turns) + " s !")
     
+    def runTest(self):
+        totalScores = [0,0]
+        players = self.choosePlayers()
+        nbGames = int(input("How many games to play ?\n"))
+        numGame = 0
+        while(numGame < nbGames):
+            times = [0,0]
+            self.generateStart()
+            played1 = True
+            played2 = True
+            turns = 0
+            while(played1 or played2):
+                turns += 1
+                played1 = self.doTurn(players[0], times, False)
+                played2 = self.doTurn(players[1], times, False)
+            scores = self.board.getScores(self.currentBoard)
+            if(scores[0] > scores[1]):
+                totalScores[0] += 1
+            else:
+                totalScores[1] += 1
+            numGame += 1
+            print(str(numGame * 100 / nbGames) + "%")
+        print("Final result is : " + str(totalScores[0]) + "-" + str(totalScores[1]) + " (" + str(totalScores[0] * 100 / nbGames) + "% - " + str(totalScores[1] * 100 / nbGames) + "%).")
+
+
     def runMenu(self):
         run = True
         while(run):
             fight = ["f", "F", "fight", "FIGHT", "1"]
             train = ["t","T", "train", "TRAIN", "2"]
-            quit = ["q","Q", "quit", "QUIT", "3"]
+            test = ["test", "TEST", "3"]
+            quit = ["q","Q", "quit", "QUIT", "4"]
             print("""What do you want to do ?
             1) FIGHT !
             2) Train AI
-            3) Quit""")
-            choice = self.inputInArray(fight + train + quit)
+            3) Test AI
+            4) Quit""")
+            choice = self.inputInArray(fight + train + test + quit)
             if(choice in fight):
                 self.runOthello()
             elif(choice in train):
@@ -193,9 +221,10 @@ class Core:
                 trainingAI = training.Training(tournamentSize)
                 bestFileName = input("Enter the name of the current best AI (press enter if there is not) :\n")
                 trainingAI.runTraining(nbGenerations, bestFileName)
+            elif(choice in test):
+                self.runTest()
             else:
                 run = False
-
 
 core = Core()
 core.runMenu()

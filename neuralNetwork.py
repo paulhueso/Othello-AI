@@ -24,7 +24,7 @@ class NeuralNetwork:
                     childNode = self.layers[numLayer + 1][numChild]
                     childNode.addParent(numNode, random.random())
 
-    def mutate(self, mutationRatio = 0.05):
+    def mutate(self, mutationRatio = 0.01):
         for layer in self.layers:
             for node in layer:
                 # ATTENTION ! IT IS A ONE WAY MODIFICATION
@@ -39,12 +39,28 @@ class NeuralNetwork:
                 if(node.children[i][0] == posChild):
                     total += node.currentValue*node.children[i][1]
         return total
-
     
-    def choosePlay(self, board):
-        for j in range(len(board)):
-            for i in range(len(board[j])):
-                self.layers[0][i + j* 8].currentValue = board[j][i]
+    def initInput(self,board,color):
+        if(color == self.board.player1):
+            for j in range(len(board)):
+                for i in range(len(board[j])):
+                    if(board[j][i] == self.board.player1):
+                        self.layers[0][i + j* 8].currentValue = 1
+                    elif(board[j][i] == self.board.player2):
+                        self.layers[0][i + j* 8].currentValue = 0
+                    else:
+                        self.layers[0][i + j* 8].currentValue = 0.5
+        else:
+            for j in range(len(board)):
+                for i in range(len(board[j])):
+                    if(board[j][i] == self.board.player1):
+                        self.layers[0][i + j* 8].currentValue = 0
+                    elif(board[j][i] == self.board.player2):
+                        self.layers[0][i + j* 8].currentValue = 1
+                    else:
+                        self.layers[0][i + j* 8].currentValue = 0.5
+    
+    def choosePlay(self, board, color):
         for numLayer in range(1, len(self.layers)):
             for posChild in range(len(self.layers[numLayer])):
                 total = self.calculLayer(self.layers[numLayer - 1], posChild)
@@ -55,7 +71,7 @@ class NeuralNetwork:
         return allPlay
     
     def chooseProposition(self, board, color):
-        allMoves = self.choosePlay(board)
+        allMoves = self.choosePlay(board, color)
         slots = self.board.getAllSlotsAvailable(board, color)
         bestMove = (-1, -1000000)
         for numSlot in range(len(slots)):
@@ -117,5 +133,5 @@ class NeuralNetwork:
             self.totalLayers = len(self.layers)
             print("DONE !")
         except(FileNotFoundError):
-            print("FAILED !!!! GENERATIN RANDOM AI !")
+            print("FAILED !!!! GENERATING RANDOM AI !")
             self.generate(64, [16,16,16], 64)
