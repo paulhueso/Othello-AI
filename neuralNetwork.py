@@ -61,6 +61,7 @@ class NeuralNetwork:
                         self.layers[0][i + j* 8].currentValue = 0.5
     
     def choosePlay(self, board, color):
+        self.initInput(board, color)
         for numLayer in range(1, len(self.layers)):
             for posChild in range(len(self.layers[numLayer])):
                 total = self.calculLayer(self.layers[numLayer - 1], posChild)

@@ -1,4 +1,5 @@
 import random
+from unittest import result
 import neuralNetwork
 import board
 import copy
@@ -35,12 +36,12 @@ class Training:
     
     def regenerateGeneration(self):
         self.currentGeneration = [self.bestOfLastGeneration]
-        currentMutationRatio = 0.05
         for i in range(1, self.nbParticipants):
             self.currentGeneration.append(copy.deepcopy(self.bestOfLastGeneration))
-            for _ in range(3):
-                self.currentGeneration[i].mutate(currentMutationRatio)
-                currentMutationRatio += 0.01
+        currentMutationRatio = 0.01
+        for i in range(1, self.nbParticipants):
+            self.currentGeneration[i].mutate(currentMutationRatio)
+            currentMutationRatio += 0.01
     
     def doTournament(self):
         nextRound = [i for i in range(self.nbParticipants)]

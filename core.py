@@ -180,12 +180,14 @@ class Core:
         players = self.choosePlayers()
         nbGames = int(input("How many games to play ?\n"))
         numGame = 0
+        totalTime = 0
         while(numGame < nbGames):
             times = [0,0]
             self.generateStart()
             played1 = True
             played2 = True
             turns = 0
+            start = time.time()
             while(played1 or played2):
                 turns += 1
                 played1 = self.doTurn(players[0], times, False)
@@ -196,7 +198,13 @@ class Core:
             else:
                 totalScores[1] += 1
             numGame += 1
+            end = time.time()
+            totalTime += end - start
             print(str(numGame * 100 / nbGames) + "%")
+            avgTimePerGame = totalTime / numGame
+            estimatedTime = avgTimePerGame * (nbGames - numGame)
+            print("The average time per game is : " + str(int(avgTimePerGame / 60)) + "m " + str(int(avgTimePerGame) % 60) + "s.")
+            print("The estimated time of arrival is : " + str(int(estimatedTime / 60)) + "m " + str(int(estimatedTime) % 60) + "s.")
         print("Final result is : " + str(totalScores[0]) + "-" + str(totalScores[1]) + " (" + str(totalScores[0] * 100 / nbGames) + "% - " + str(totalScores[1] * 100 / nbGames) + "%).")
 
 
