@@ -4,6 +4,7 @@ import ia
 import neuralNetwork
 import time
 import random
+import multiprocessing
 # TODO: créer une fonction qui récupère toutes les positions des jetons d'un joueur (peut être implémenter un tableau qui est modifié selon les positions des jetons)
 
 class Core:
@@ -14,15 +15,8 @@ class Core:
         self.player = 1
         self.board = board.Board()
         self.numberOfMoves = 0
-        self.generateStart()
+        self.currentBoard = self.board.generateStart()
     
-    def generateStart(self):
-        self.currentBoard = [[self.board.empty for i in range(8)] for j in range(8)]
-        self.currentBoard[3][3] = self.board.player1
-        self.currentBoard[4][3] = self.board.player2
-        self.currentBoard[3][4] = self.board.player2
-        self.currentBoard[4][4] = self.board.player1
-
     def inputInArray(self, array, question = "Please, choose.", error = "Your input isn't valid."):
         x = ""
         if(len(array) == 0):
@@ -77,12 +71,12 @@ class Core:
             self.neural2.load(fileName)
         return [p1, p2]
 
-    def doTurn(self, player, times, display = True):
+    def doTurn(self, currentBoard, player, times, display = True):
         color, nbType = player
         if(display):
             print("Player " + str(color) + ": ")
-            self.board.displayPossibilities(self.currentBoard, color)
-        slots = self.board.getAllSlotsAvailable(self.currentBoard, color)
+            self.board.displayPossibilities(currentBoard, color)
+        slots = self.board.getAllSlotsAvailable(currentBoard, color)
         if(len(slots) == 0):
             return False
         # TODO : Put a switch
@@ -93,38 +87,38 @@ class Core:
             end = time.time()
             times[color - 1] += end - start
             x,y = slots[choice]
-            self.board.playSlot(self.currentBoard, x, y, color)
+            self.board.playSlot(currentBoard, x, y, color)
         elif(nbType == 1): # IA
             if(color == self.board.player1):
                 start = time.time()
-                bestMove = self.ia1.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
+                bestMove = self.ia1.startMinMaxAlphaBeta(currentBoard, self.numberOfMoves, display)
                 end = time.time()
                 times[0] += end - start
             else:
                 start = time.time()
-                bestMove = self.ia2.startMinMaxAlphaBeta(self.currentBoard, self.numberOfMoves)
+                bestMove = self.ia2.startMinMaxAlphaBeta(currentBoard, self.numberOfMoves, display)
                 end = time.time()
                 times[1] += end - start
-            self.board.playProposition(self.currentBoard, bestMove[0], color)
+            self.board.playProposition(currentBoard, bestMove[0], color)
         elif(nbType == 2): # random
             start = time.time()
             slot = random.choice(slots)
             x,y = slot
-            self.board.playSlot(self.currentBoard, x, y, color)
+            self.board.playSlot(currentBoard, x, y, color)
             end = time.time()
             times[color - 1] += end - start
         elif(nbType == 3): # neural network
             if(color == self.board.player1):
                 start = time.time()
-                bestMove = self.neural1.chooseProposition(self.currentBoard, color)
+                bestMove = self.neural1.chooseProposition(currentBoard, color)
                 end = time.time()
                 times[0] += end - start
             else:
                 start = time.time()
-                bestMove = self.neural2.chooseProposition(self.currentBoard, color)
+                bestMove = self.neural2.chooseProposition(currentBoard, color)
                 end = time.time()
                 times[1] += end - start
-            self.board.playProposition(self.currentBoard, bestMove, color)
+            self.board.playProposition(currentBoard, bestMove, color)
         self.numberOfMoves += 1
         return True
 
@@ -151,7 +145,7 @@ class Core:
         print("Done !")
             
     def runOthello(self):
-        self.generateStart()
+        self.currentBoard = self.board.generateStart()
         players = self.choosePlayers()
         played1 = True
         played2 = True
@@ -159,10 +153,10 @@ class Core:
         times = [0,0]
         while(played1 or played2):
             turns += 1
-            played1 = self.doTurn(players[0], times)
+            played1 = self.doTurn(self.currentBoard, players[0], times)
             if(not(played1)):
                 print("Player1 can't play !")
-            played2 = self.doTurn(players[1], times)
+            played2 = self.doTurn(self.currentBoard, players[1], times)
             if(not(played2)):
                 print("Player2 can't play !")
         scores = self.board.getScores(self.currentBoard)
@@ -175,38 +169,62 @@ class Core:
         print("The average time for player1 is : " + str(times[0] / turns) + " s !")
         print("The average time for player2 is : " + str(times[1] / turns) + " s !")
     
+    def testGame(self, queueGames, queueResults, queueTimes, players):
+        while(not(queueGames.empty())):
+            nbGame = queueGames.get()
+            currentBoard = self.board.generateStart()
+            played1 = True
+            played2 = True
+            turns = 0
+            times= [0,0]
+            while(played1 or played2):
+                turns += 1
+                played1 = self.doTurn(currentBoard, players[0], times, False)
+                played2 = self.doTurn(currentBoard, players[1], times, False)
+            scores = self.board.getScores(currentBoard)
+            if(scores[0] > scores[1]):
+                queueResults.put(0)
+            else:
+                queueResults.put(1)
+            queueTimes.put(times)
+    
     def runTest(self):
         totalScores = [0,0]
         players = self.choosePlayers()
         nbGames = int(input("How many games to play ?\n"))
-        numGame = 0
-        totalTime = 0
-        while(numGame < nbGames):
-            times = [0,0]
-            self.generateStart()
-            played1 = True
-            played2 = True
-            turns = 0
-            start = time.time()
-            while(played1 or played2):
-                turns += 1
-                played1 = self.doTurn(players[0], times, False)
-                played2 = self.doTurn(players[1], times, False)
-            scores = self.board.getScores(self.currentBoard)
-            if(scores[0] > scores[1]):
-                totalScores[0] += 1
-            else:
-                totalScores[1] += 1
-            numGame += 1
-            end = time.time()
-            totalTime += end - start
-            print(str(numGame * 100 / nbGames) + "%")
-            avgTimePerGame = totalTime / numGame
-            estimatedTime = avgTimePerGame * (nbGames - numGame)
-            print("The average time per game is : " + str(int(avgTimePerGame / 60)) + "m " + str(int(avgTimePerGame) % 60) + "s.")
-            print("The estimated time of arrival is : " + str(int(estimatedTime / 60)) + "m " + str(int(estimatedTime) % 60) + "s.")
+        queueGames = multiprocessing.Queue()
+        queueTimes = multiprocessing.Queue()
+        queueResults = multiprocessing.Queue()
+        totGames = 0
+        times = [0,0]
+        for i in range(nbGames):
+            queueGames.put(i)
+        process = []
+        nbProcess = min(8, int(nbGames))
+        for _ in range(nbProcess):
+            newProcess = multiprocessing.Process(target = self.testGame, args = (queueGames, queueResults, queueTimes, players))
+            process.append(newProcess)
+            newProcess.start()
+        isRunning = True
+        while(isRunning):
+            currentRunning = False
+            for p in process:
+                currentRunning = currentRunning or p.is_alive()
+            isRunning = currentRunning
+            if(not(queueResults.empty())):
+                result = queueResults.get()
+                totalScores[result] += 1
+                totGames += 1
+            if(not(queueTimes.empty())):
+                time = queueTimes.get()
+                times[0] += time[0]
+                times[1] += time[1]
+                if(totGames > 0):
+                    sETA = (times[0] + times[1]) * (nbGames - totGames) / (totGames * nbProcess)
+                    print("The estimated time of arrival is : " + str(int(sETA / 60)) + "m " + str(int(sETA) % 60) + "s.")
+        for p in process:    
+            p.join()
         print("Final result is : " + str(totalScores[0]) + "-" + str(totalScores[1]) + " (" + str(totalScores[0] * 100 / nbGames) + "% - " + str(totalScores[1] * 100 / nbGames) + "%).")
-
 
     def runMenu(self):
         run = True
@@ -224,8 +242,8 @@ class Core:
             if(choice in fight):
                 self.runOthello()
             elif(choice in train):
-                tournamentSize = int(input("Choose the size of the tournament (recommended = 5) :\n"))
-                nbGenerations = int(input("Choose the number of generation (~ 1 min per generation for 5 in size of tournament) :\n"))
+                tournamentSize = int(input("Choose the size of the tournament (recommended = 6) :\n"))
+                nbGenerations = int(input("Choose the number of generation (~ 1 min per generation for 6 in size of tournament) :\n"))
                 trainingAI = training.Training(tournamentSize)
                 bestFileName = input("Enter the name of the current best AI (press enter if there is not) :\n")
                 trainingAI.runTraining(nbGenerations, bestFileName)
@@ -234,5 +252,6 @@ class Core:
             else:
                 run = False
 
-core = Core()
-core.runMenu()
+if __name__ == '__main__':
+    core = Core()
+    core.runMenu()

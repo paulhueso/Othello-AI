@@ -81,6 +81,14 @@ class NeuralNetwork:
             if(valueMove > bestMove[1]):
                 bestMove = (numSlot, valueMove)
         return bestMove[0]
+    
+    def calculDifference(self, other):
+        difference = 0
+        for numLayer in range(len(self.layers)):
+            for numNode in range(len(self.layers[numLayer])):
+                for numChild in range(len(self.layers[numLayer][numNode].children)):
+                    difference += abs(self.layers[numLayer][numNode].children[numChild][1] - other.layers[numLayer][numNode].children[numChild][1])
+        return difference
 
     def save(self, fileName = "best.txt"):
         print("Saving to " + fileName + "... ", end="")
@@ -102,10 +110,12 @@ class NeuralNetwork:
         children = []
         i = 0
         for i in range(3,int(values[0])+3):
-            posParent, weight = values[i].split(",")
+            strValues = values[i].split(",")
+            posParent, weight = int(strValues[0]), float(strValues[1])
             parents.append([posParent, weight])
         for i in range(int(values[0]) + 3,len(values)):
-            posChild, weight = values[i].split(",")
+            strValues = values[i].split(",")
+            posChild, weight = int(strValues[0]), float(strValues[1])
             children.append([posChild, weight])
         self.layers[position][numNode] = node.Node(parents, position, children)
 
