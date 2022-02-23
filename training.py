@@ -111,7 +111,7 @@ class Training:
         process = []
         queueNextRound = multiprocessing.Queue()
         queueCurrentRound = multiprocessing.Queue()
-        for _ in range(8):
+        for _ in range(8): # Number of logical processor
             newProcess = multiprocessing.Process(target = self.multiProcTournament, args = (queueCurrentRound, queueNextRound))
             newProcess.start()
             process.append(newProcess)
