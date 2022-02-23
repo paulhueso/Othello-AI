@@ -107,11 +107,12 @@ class IA:
                     bestMove = (i, value[1])
         return bestMove
 
-    def startMinMaxAlphaBeta(self, board, numberOfMoves):
+    def startMinMaxAlphaBeta(self, board, numberOfMoves, display = True):
         self.numberOfMoves = numberOfMoves
         newBoard = copy.deepcopy(board)
         bestMove = self.minmaxAlphaBeta(newBoard, self.depth, -10000000, 10000000, True)
-        print("The AI played the choice n°" + str(bestMove[0]) + " with a score of " + str(bestMove[1]) + ".")
+        if(display):
+            print("The AI played the choice n°" + str(bestMove[0]) + " with a score of " + str(bestMove[1]) + ".")
         return bestMove
     
     def minmaxAlphaBeta(self, currentBoard, depth, alpha, beta, maximizePlayer):

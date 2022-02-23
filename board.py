@@ -7,6 +7,15 @@ class Board:
         self.player2 = 2
         self.empty = 0
 
+    def generateStart(self):
+        currentBoard = [[self.empty for i in range(8)] for j in range(8)]
+        currentBoard[3][3] = self.player1
+        currentBoard[4][3] = self.player2
+        currentBoard[3][4] = self.player2
+        currentBoard[4][4] = self.player1
+        return currentBoard
+
+
     def random(self, board, propPlayer1, propPlayer2):
         for x in range(8):
             for y in range(8):
