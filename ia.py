@@ -14,6 +14,7 @@ class IA:
         self.numberOfMoves = 0
 
     def heuristic(self, currentBoard):
+        """Use a particular heuristic according to user choice."""
         mixteStrategy = -1
 
         #Mixte strategy
@@ -28,6 +29,11 @@ class IA:
             return self.heuristic_mobility(currentBoard)
 
     def heuristic_mixte(self, currentBoard):
+        """
+        20 firsts moves as positional strategy
+        20 to 40 moves as mobility strategy
+        20 lasts moves as absolute strategy 
+        """
         if(self.numberOfMoves < 20):
             return 2
         elif(self.numberOfMoves > 45):
@@ -36,6 +42,7 @@ class IA:
             return 3
 
     def heuristic_absolute(self, currentBoard):
+        """Maximize the number of IA token while minimizing adversary tokens."""
         score = 0
         opponentScore = 0
         for j in range(8):
@@ -46,6 +53,7 @@ class IA:
         return score - opponentScore
 
     def heuristic_positional(self, currentBoard):
+        """Prioritize the position of tokens on the board according to the positional board."""
         score = 0
         opponentScore = 0
         positional = [[500, -150, 30, 10, 10, 10, 30, -150, 500],[-150, -250, 0, 0, 0, 0, -250, -150],[30, 0, 1, 2, 2, 1, 0, 30],[10, 0, 2, 16, 16, 2, 0, 10],[10, 0, 2, 16, 16, 2, 0, 10],[30, 0, 1, 2, 2, 1, 0, 30],[-150, -250, 0, 0, 0, 0, -250, -150],[500, -150, 30, 10, 10, 10, 30, -150, 500]]
@@ -59,6 +67,7 @@ class IA:
             
     #Mobility strategy Van Eck, N. J., & van Wezel, M. (2008). Application of reinforcement learning to the game of Othello. Computers & Operations Research, 35(6), 1999–2017. 
     def heuristic_mobility(self, currentBoard):
+        """Prioritize corners possession then prioritize number of moves possible."""
         nbCorners = 0
         nbOpponentCorners = 0
         possibleMoves = len(self.board.getAllSlotsAvailable(currentBoard, self.color))

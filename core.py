@@ -1,11 +1,11 @@
 import board
-import training
+import trainingGenetic
 import ia
 import neuralNetwork
 import time
 import random
 import multiprocessing
-# TODO: créer une fonction qui récupère toutes les positions des jetons d'un joueur (peut être implémenter un tableau qui est modifié selon les positions des jetons)
+import trainingQLearning
 
 class Core:
     """Core game for Othello"""
@@ -169,6 +169,11 @@ class Core:
         print("The average time for player1 is : " + str(times[0] / turns) + " s !")
         print("The average time for player2 is : " + str(times[1] / turns) + " s !")
     
+    def runQlearning(self):
+        qlearning = trainingQLearning.QLearning(1, 2)
+        qlearning.training(self.doTurn)
+
+
     def testGame(self, queueGames, queueResults, queueTimes, players):
         while(not(queueGames.empty())):
             nbGame = queueGames.get()
@@ -254,4 +259,4 @@ class Core:
 
 if __name__ == '__main__':
     core = Core()
-    core.runMenu()
+    core.runQlearning()

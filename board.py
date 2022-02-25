@@ -8,6 +8,8 @@ class Board:
         self.empty = 0
 
     def generateStart(self):
+        """Generate the board with initial positions
+        return the board [8][8]."""
         currentBoard = [[self.empty for i in range(8)] for j in range(8)]
         currentBoard[3][3] = self.player1
         currentBoard[4][3] = self.player2
@@ -17,6 +19,7 @@ class Board:
 
 
     def random(self, board, propPlayer1, propPlayer2):
+        """Populate the board randomly for test purpose."""
         for x in range(8):
             for y in range(8):
                 nb = random.random()
@@ -35,6 +38,7 @@ class Board:
         print(result)
 
     def display(self, board):
+        """Display the board."""
         self.displayScores(board)
         text = ""
         for row in board:
@@ -49,6 +53,11 @@ class Board:
         print(text)
 
     def displayPossibilities(self, board, colorCheck):
+        """Display the board with all the possibilities for the colorCheck player.
+        @board : currentBoard
+        @colorCheck : player who is playing
+        """
+
         self.displayScores(board)
         slots = self.getAllSlotsAvailable(board, colorCheck)
         text = ""
@@ -116,6 +125,12 @@ class Board:
         return False
 
     def getAllSlotsAvailable(self, board, colorCheck):
+        """Return all slots that are available to player for current player
+        @board : current Board
+        @colorCheck : current Player
+        return [(x,y), ...]
+        """
+
         slots = []
         for x in range(8):
             for y in range(8):
@@ -124,6 +139,12 @@ class Board:
         return slots
 
     def playSlot(self, board, x, y, colorCheck):
+        """Return the board after the current player played
+        @board : current Board
+        @x : position x to play
+        @y : position y to play
+        @colorCheck : current Player
+        """
         if(self.isPlayable(board, x, y, colorCheck)):
             directions = self.detectAround(board, x, y, colorCheck)
             board[y][x] = colorCheck
@@ -157,3 +178,21 @@ class Board:
                 elif(slot == self.player2):
                     scores[1] += 1
         return scores
+
+    def isFinished(self, currentBoard):
+        movesPlayer1 = self.getAllSlotsAvailable(currentBoard, 1)
+        movesPlayer2 = self.getAllSlotsAvailable(currentBoard, 2)
+        return (len(movesPlayer1) == 0 and len(movesPlayer2) == 0)
+
+    def winner(self, currentBoard):
+        if(not isFinished(currentBoard)):
+            return 0
+
+        scores = getScores(currentBoard)
+
+        if(scores[0] > scores[1]):
+            return 1
+        elif(scores[0] < scores[1]):
+            return 2 
+        else:
+            return -1

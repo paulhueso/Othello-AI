@@ -61,6 +61,7 @@ class NeuralNetwork:
                         self.layers[0][i + j* 8].currentValue = 0.5
     
     def choosePlay(self, board, color):
+        """Renvoie tableau de flottants de taille 64."""
         self.initInput(board, color)
         for numLayer in range(1, len(self.layers)):
             for posChild in range(len(self.layers[numLayer])):
@@ -90,7 +91,7 @@ class NeuralNetwork:
                     difference += abs(self.layers[numLayer][numNode].children[numChild][1] - other.layers[numLayer][numNode].children[numChild][1])
         return difference
 
-    def save(self, fileName = "best.txt"):
+    def save(self, fileName = "bestGenetic.txt"):
         print("Saving to " + fileName + "... ", end="")
         with open(fileName, "w") as f:
             for layer in self.layers:
@@ -119,7 +120,7 @@ class NeuralNetwork:
             children.append([posChild, weight])
         self.layers[position][numNode] = node.Node(parents, position, children)
 
-    def load(self, fileName = "best.txt"):
+    def load(self, fileName = "bestGenetic.txt"):
         print("Loading from " + fileName + "... ", end="")
         try:
             with open(fileName, "r") as f:

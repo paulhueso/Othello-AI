@@ -46,11 +46,7 @@ class Training:
             currentMutationRatio += 0.01
     
     def playGame(self, adversary1, adversary2, queueNextRound, nbOpponent, currentGeneration):
-        currentBoard = [[self.board.empty for i in range(8)] for j in range(8)]
-        currentBoard[3][3] = self.board.player1
-        currentBoard[4][3] = self.board.player2
-        currentBoard[3][4] = self.board.player2
-        currentBoard[4][4] = self.board.player1
+        currentBoard = self.board.generateStart()
         player1 = currentGeneration[adversary1]
         player2 = currentGeneration[adversary2]
         played1 = True
