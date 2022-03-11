@@ -1,3 +1,4 @@
+from concurrent.futures.thread import _threads_queues
 import board
 import training
 import ia
@@ -171,7 +172,7 @@ class Core:
     
     def testGame(self, queueGames, queueResults, queueTimes, players):
         while(not(queueGames.empty())):
-            nbGame = queueGames.get()
+            queueGames.get()
             currentBoard = self.board.generateStart()
             played1 = True
             played2 = True
@@ -224,7 +225,54 @@ class Core:
                     print("The estimated time of arrival is : " + str(int(sETA / 60)) + "m " + str(int(sETA) % 60) + "s.")
         for p in process:    
             p.join()
+        print("Temps moyen par partie J1 : " + str(times[0] / nbGames) + " s.")
+        print("Temps moyen par partie J2 : " + str(times[1] / nbGames) + " s.")
         print("Final result is : " + str(totalScores[0]) + "-" + str(totalScores[1]) + " (" + str(totalScores[0] * 100 / nbGames) + "% - " + str(totalScores[1] * 100 / nbGames) + "%).")
+
+    def runTestAll(self):
+        bestFileName = input("Enter the name of the current best AI (press enter if there is not) :\n")
+        self.neural2 = neuralNetwork.NeuralNetwork()
+        self.neural2.load(bestFileName)
+        self.neural1 = neuralNetwork.NeuralNetwork()
+        self.neural1.load(bestFileName)
+        depth = input("Depth of all AI : ")
+        players = [[self.board.player1, 1], [self.board.player2,3]]
+        results = [0, 0]
+        times = [0,0]
+        print("Neural network as 2nd player.")
+        for i in range(1,5):
+            currentBoard = self.board.generateStart()
+            played1 = True
+            played2 = True
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(i))
+            while(played1 or played2):
+                played1 = self.doTurn(currentBoard, players[0], times, False)
+                played2 = self.doTurn(currentBoard, players[1], times, False)
+            scores = self.board.getScores(currentBoard)
+            if(scores[0] > scores[1]):
+                results[0] += 1
+                print("Neural Network lost !")
+            else:
+                results[1] += 1
+                print("Neural Network won !")
+        players = [[self.board.player1, 3], [self.board.player2,1]]
+        print("Now neural network as 1st player.")
+        for i in range(1,5):
+            currentBoard = self.board.generateStart()
+            played1 = True
+            played2 = True
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(i))
+            while(played1 or played2):
+                played1 = self.doTurn(currentBoard, players[0], times, False)
+                played2 = self.doTurn(currentBoard, players[1], times, False)
+            scores = self.board.getScores(currentBoard)
+            if(scores[0] > scores[1]):
+                results[1] += 1
+                print("Neural Network won !")
+            else:
+                results[0] += 1
+                print("Neural Network lost !")
+        print("The neural network did : " + str(results[1]) + " - " + str(results[0]))
 
     def runMenu(self):
         run = True
@@ -232,13 +280,15 @@ class Core:
             fight = ["f", "F", "fight", "FIGHT", "1"]
             train = ["t","T", "train", "TRAIN", "2"]
             test = ["test", "TEST", "3"]
-            quit = ["q","Q", "quit", "QUIT", "4"]
+            testAll = ["all", "ALL", "4"]
+            quit = ["q","Q", "quit", "QUIT", "5"]
             print("""What do you want to do ?
             1) FIGHT !
             2) Train AI
             3) Test AI
-            4) Quit""")
-            choice = self.inputInArray(fight + train + test + quit)
+            4) Test all AI
+            5) Quit""")
+            choice = self.inputInArray(fight + train + test + testAll + quit)
             if(choice in fight):
                 self.runOthello()
             elif(choice in train):
@@ -249,6 +299,8 @@ class Core:
                 trainingAI.runTraining(nbGenerations, bestFileName)
             elif(choice in test):
                 self.runTest()
+            elif(choice in testAll):
+                self.runTestAll()
             else:
                 run = False
 
