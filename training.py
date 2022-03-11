@@ -122,7 +122,7 @@ class Training:
         else:
             self.bestOfLastGeneration = neuralNetwork.NeuralNetwork(64, [16,16,16], 64)
             self.bestOfLastGeneration.randomFullPopulate()
-
+        startNetwork = copy.deepcopy(self.bestOfLastGeneration)
         while(self.currentNbGeneration < self.nbGenerations):
             self.currentNbGeneration += 1
             self.regenerateGeneration()
@@ -137,3 +137,4 @@ class Training:
             p.join()
         self.bestOfLastGeneration.save()
         print("Ended the training of the AI.")
+        print("Final difference is : " + str(startNetwork.calculDifference(self.bestOfLastGeneration)))
