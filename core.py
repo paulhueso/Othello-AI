@@ -1,4 +1,7 @@
 from concurrent.futures.thread import _threads_queues
+from copy import deepcopy
+from logging import StringTemplateStyle
+import os
 import board
 import training
 import ia
@@ -6,7 +9,8 @@ import neuralNetwork
 import time
 import random
 import multiprocessing
-# TODO: créer une fonction qui récupère toutes les positions des jetons d'un joueur (peut être implémenter un tableau qui est modifié selon les positions des jetons)
+import matplotlib.pyplot as plt
+import matplotlib.figure as figure
 
 class Core:
     """Core game for Othello"""
@@ -56,7 +60,8 @@ class Core:
         if(p1[1] == 1):
             depth = input("\nAI depth: ")
             strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategy))
+            timeOfThinking = float(input("Maximum time before the AI gives his move (in seconde) :"))
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(strategy), timeOfThinking)
         elif(p1[1] == 3):
             self.neural1 = neuralNetwork.NeuralNetwork()
             fileName = input("Which AI would you like to load ?")
@@ -65,7 +70,8 @@ class Core:
         if(p2[1] == 1):
             depth = input("AI depth: ")
             strategy = input("\nStrategy: \n1) Absolute\n2) Positional\n3) Mobility\n4) Mixte (Recommended)\nChoice: ")
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategy))
+            timeOfThinking = float(input("Maximum time before the AI gives his move (in seconde) :"))
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(strategy), timeOfThinking)
         elif(p2[1] == 3):
             self.neural2 = neuralNetwork.NeuralNetwork()
             fileName = input("Which AI would you like to load ?")
@@ -80,7 +86,6 @@ class Core:
         slots = self.board.getAllSlotsAvailable(currentBoard, color)
         if(len(slots) == 0):
             return False
-        # TODO : Put a switch
         if(nbType == 0): # human        
             choices = [i for i in range(len(slots))]
             start = time.time()
@@ -169,6 +174,10 @@ class Core:
             self.saveScores((players[0][1], 0),(players[1][1], 1))
         print("The average time for player1 is : " + str(times[0] / turns) + " s !")
         print("The average time for player2 is : " + str(times[1] / turns) + " s !")
+        if(players[0][1] == 1):
+            print("Number of nodes generated for P1 :", self.ia1.totalNumberNode)
+        if(players[1][1] == 1):
+            print("Number of nodes generated for P2 :", self.ia2.totalNumberNode)
     
     def testGame(self, queueGames, queueResults, queueTimes, players):
         while(not(queueGames.empty())):
@@ -229,50 +238,160 @@ class Core:
         print("Temps moyen par partie J2 : " + str(times[1] / nbGames) + " s.")
         print("Final result is : " + str(totalScores[0]) + "-" + str(totalScores[1]) + " (" + str(totalScores[0] * 100 / nbGames) + "% - " + str(totalScores[1] * 100 / nbGames) + "%).")
 
+    def runGame(self, typeP1 : int, typeP2 : int, depthP1 : int, depthP2 : int, strategyP1 : int, strategyP2 : int):
+        currentBoard = self.board.generateStart()
+        self.numberOfMoves = 0
+        played1 = True
+        played2 = True
+        turns = 0
+        timesMove1 = []
+        timesMove2 = []
+        players = [[self.board.player1, typeP1], [self.board.player2, typeP2]]
+        if(typeP1 == 1):
+            self.ia1 = ia.IA(self.board.player1, self.board.player2, depthP1, strategyP1)
+        if(typeP2 == 1):
+            self.ia2 = ia.IA(self.board.player2, self.board.player1, depthP2, strategyP2)
+        while(played1 or played2):
+            turns += 1
+            times= [0,0]
+            played1 = self.doTurn(currentBoard, players[0], times, False)
+            if(played1):
+                timesMove1.append(times[0])
+            else:
+                timesMove1.append(-1)
+            times= [0,0]
+            played2 = self.doTurn(currentBoard, players[1], times, False)
+            if(played2):
+                timesMove2.append(times[1])
+            else:
+                timesMove2.append(-1)
+        scores = self.board.getScores(currentBoard)
+        result = -1
+        if(scores[0] > scores[1]):
+            result = 1
+        else:
+            result = 2
+        timeGame = 0
+        for time in timesMove1:
+            if(time > 0):
+                timeGame += time
+        for time in timesMove2:
+            if(time > 0):
+                timeGame += time
+        return [result, strategyP1, strategyP2, depthP1, depthP2, timeGame, timesMove1, timesMove2]
+
+    def runGamesProcessus(self, queueNextGame : multiprocessing.Queue, queueResultGame : multiprocessing.Queue) -> None:
+        end = False
+        while(not(end)):
+            if(not(queueNextGame.empty())):
+                end, typeP1, typeP2, depthP1, depthP2, strategyP1, strategyP2  = queueNextGame.get()
+                if(not(end)):
+                    print("Starting game : " + str(strategyP1) + " - " + str(strategyP2) + "    " + str(depthP1) + " - " + str(depthP2))
+                    value = self.runGame(typeP1, typeP2, depthP1, depthP2, strategyP1, strategyP2)
+                    queueResultGame.put(value)
+                    print("End game : " + str(strategyP1) + " - " + str(strategyP2))
+
     def runTestAll(self):
-        bestFileName = input("Enter the name of the current best AI (press enter if there is not) :\n")
-        self.neural2 = neuralNetwork.NeuralNetwork()
-        self.neural2.load(bestFileName)
-        self.neural1 = neuralNetwork.NeuralNetwork()
-        self.neural1.load(bestFileName)
-        depth = input("Depth of all AI : ")
-        players = [[self.board.player1, 1], [self.board.player2,3]]
-        results = [0, 0]
-        times = [0,0]
-        print("Neural network as 2nd player.")
-        for i in range(1,5):
-            currentBoard = self.board.generateStart()
-            played1 = True
-            played2 = True
-            self.ia1 = ia.IA(self.board.player1, self.board.player2, int(depth), int(i))
-            while(played1 or played2):
-                played1 = self.doTurn(currentBoard, players[0], times, False)
-                played2 = self.doTurn(currentBoard, players[1], times, False)
-            scores = self.board.getScores(currentBoard)
-            if(scores[0] > scores[1]):
-                results[0] += 1
-                print("Neural Network lost !")
-            else:
-                results[1] += 1
-                print("Neural Network won !")
-        players = [[self.board.player1, 3], [self.board.player2,1]]
-        print("Now neural network as 1st player.")
-        for i in range(1,5):
-            currentBoard = self.board.generateStart()
-            played1 = True
-            played2 = True
-            self.ia2 = ia.IA(self.board.player2, self.board.player1, int(depth), int(i))
-            while(played1 or played2):
-                played1 = self.doTurn(currentBoard, players[0], times, False)
-                played2 = self.doTurn(currentBoard, players[1], times, False)
-            scores = self.board.getScores(currentBoard)
-            if(scores[0] > scores[1]):
-                results[1] += 1
-                print("Neural Network won !")
-            else:
-                results[0] += 1
-                print("Neural Network lost !")
-        print("The neural network did : " + str(results[1]) + " - " + str(results[0]))
+        maxDepth = max(2,int(input("Max depth to compute : ")))
+        queueNextGame = multiprocessing.Queue()
+        queueResultGame = multiprocessing.Queue()
+        processus = []
+        for _ in range(8):
+            newProcess = multiprocessing.Process(target=self.runGamesProcessus, args=(queueNextGame, queueResultGame))
+            newProcess.start()
+            processus.append(newProcess)
+        nbGames = 0
+        for depthP1 in range(2,maxDepth+1):
+            for depthP2 in range(2,maxDepth+1):
+                for strategyP1 in range(1,5):
+                    for strategyP2 in range(1,5):
+                        queueNextGame.put([False, 1, 1, depthP1, depthP2, strategyP1, strategyP2])
+                        nbGames += 1
+        nbFinishedGame = 0
+        results = []
+        while (nbFinishedGame < nbGames):
+            if(not(queueResultGame.empty())):
+                results.append(queueResultGame.get())
+                nbFinishedGame += 1
+        print("Quitting proccess... ", end="")
+        for _ in range(8):
+            queueNextGame.put([True, -1, -1, -1, -1, -1, -1])
+        for process in processus:
+            process.join()
+        print("DONE !")
+        with open("results.txt", "w") as f:
+            for result, typeP1, typeP2, depthP1, depthP2, timeGame, timesMove1, timesMove2 in results:
+                f.write(str(result) + ";")
+                f.write(str(typeP1) + ";")
+                f.write(str(typeP2) + ";")
+                f.write(str(depthP1) + ";")
+                f.write(str(depthP2) + ";")
+                f.write(str(timeGame) + ";")
+                f.write(str(timesMove1) + ";")
+                f.write(str(timesMove2) + ";")
+                f.write("\n")
+    
+    def runOutputValuesForTestAllAI(self):
+        lines = []
+        with open("results.txt", "r") as f:
+            lines = f.readlines()
+        namesAI = ["Absolute","Positional","Mobility","Mixte"]
+        plt.rcParams['figure.figsize'] = [12, 7]
+        for line in lines:
+            allValues = line.split(";")
+            result = int(allValues[0])
+            typeP1 = int(allValues[1])
+            typeP1 = namesAI[typeP1 - 1]
+            typeP2 = int(allValues[2])
+            typeP2 = namesAI[typeP2 - 1]
+            depthP1 = int(allValues[3])
+            depthP2 = int(allValues[4])
+            timeGame = float(allValues[5])
+            timesMove1 = allValues[6].split(", ")
+            timesMove1[0] = timesMove1[0].removeprefix("[")
+            timesMove1[-1] = timesMove1[-1].removesuffix("]")
+            timesMove1 = [float(val) for val in timesMove1]
+            totalTime1 = sum(timesMove1)
+            timesMove2 = allValues[7].split(", ")
+            timesMove2[0] = timesMove2[0].removeprefix("[")
+            timesMove2[-1] = timesMove2[-1].removesuffix("]")
+            timesMove2 = [float(val) for val in timesMove2]
+            totalTime2 = sum(timesMove2)
+            playedMoves1 = []
+            nbMove = 1
+            for timeM1 in timesMove1:
+                if(timeM1 != -1):
+                    playedMoves1.append(nbMove)
+                    nbMove += 2
+                else:
+                    nbMove += 2
+            timesMove1 = list(filter(lambda a: a != -1, timesMove1))
+            playedMoves2 = []
+            nbMove = 2
+            for timeM1 in timesMove2:
+                if(timeM1 != -1):
+                    playedMoves2.append(nbMove)
+                    nbMove += 2
+                else:
+                    nbMove += 2
+            timesMove2 = list(filter(lambda a: a != -1, timesMove2))
+            plt.plot(playedMoves1, timesMove1)
+            plt.plot(playedMoves2, timesMove2)
+            plt.ylabel("Time for each move in s")
+            plt.xlabel("The number of the move")
+            plt.legend(["P1 : " + typeP1 + " of depth " + str(depthP1), "P2 : " + typeP2 + " of depth " + str(depthP2)])
+            plt.figtext(0.7,0.6,"The winner is P" + str(result))
+            plt.figtext(0.7,0.58,"The total time is " + str(timeGame)[:6] + " s")
+            plt.figtext(0.7,0.56,"The total time of P1 is " + str(totalTime1)[:6] + " s")
+            plt.figtext(0.7,0.54,"The total time of P2 is " + str(totalTime2)[:6] + " s")
+            path = "plots"
+            if(not(os.path.exists(path))):
+                os.makedirs(path)
+            path += os.path.sep + typeP1 + str(depthP1) + "_" + typeP2 + str(depthP2) + ".png"
+            plt.savefig(path)
+            plt.close()
+
+        
 
     def runMenu(self):
         run = True
@@ -281,14 +400,16 @@ class Core:
             train = ["t","T", "train", "TRAIN", "2"]
             test = ["test", "TEST", "3"]
             testAll = ["all", "ALL", "4"]
-            quit = ["q","Q", "quit", "QUIT", "5"]
+            outputAll = ["o", "O", "OUT", "out", "5"]
+            quit = ["q","Q", "quit", "QUIT", "6"]
             print("""What do you want to do ?
             1) FIGHT !
             2) Train AI
             3) Test AI
             4) Test all AI
-            5) Quit""")
-            choice = self.inputInArray(fight + train + test + testAll + quit)
+            5) Generates plots for the results of test all AI.
+            6) Quit""")
+            choice = self.inputInArray(fight + train + test + testAll + quit + outputAll)
             if(choice in fight):
                 self.runOthello()
             elif(choice in train):
@@ -301,6 +422,8 @@ class Core:
                 self.runTest()
             elif(choice in testAll):
                 self.runTestAll()
+            elif(choice in outputAll):
+                self.runOutputValuesForTestAllAI()
             else:
                 run = False
 

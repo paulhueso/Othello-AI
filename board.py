@@ -1,3 +1,4 @@
+from email.errors import NoBoundaryInMultipartDefect
 import random
 
 class Board:
@@ -8,11 +9,11 @@ class Board:
         self.empty = 0
 
     def generateStart(self):
-        currentBoard = [[self.empty for i in range(8)] for j in range(8)]
-        currentBoard[3][3] = self.player1
-        currentBoard[4][3] = self.player2
-        currentBoard[3][4] = self.player2
-        currentBoard[4][4] = self.player1
+        currentBoard = [[self.empty for _ in range(8)] for _ in range(8)]
+        currentBoard[3][3] = self.player2
+        currentBoard[4][3] = self.player1
+        currentBoard[3][4] = self.player1
+        currentBoard[4][4] = self.player2
         return currentBoard
 
 
@@ -36,8 +37,10 @@ class Board:
 
     def display(self, board):
         self.displayScores(board)
-        text = ""
+        text = "     A   B   C   D   E   F   G   H\n"
+        nbRow = 1
         for row in board:
+            text += str(nbRow)
             for slot in row:
                 if(slot == self.player1):
                     text += "_○_|"
@@ -45,14 +48,18 @@ class Board:
                     text += "_●_|"
                 else:
                     text += "___|"
+            nbRow += 1
             text += "\n"
         print(text)
 
     def displayPossibilities(self, board, colorCheck):
         self.displayScores(board)
         slots = self.getAllSlotsAvailable(board, colorCheck)
-        text = ""
+        text = "   A   B   C   D   E   F   G   H\n"
+        nbRow = 0
         for j in range(8):
+            nbRow += 1
+            text += str(nbRow) + " "
             for i in range(8):
                 slot = board[j][i]
                 if((i,j) in slots):
@@ -125,6 +132,7 @@ class Board:
 
     def playSlot(self, board, x, y, colorCheck):
         if(self.isPlayable(board, x, y, colorCheck)):
+            #print(chr(ord("A") + x),y+1)
             directions = self.detectAround(board, x, y, colorCheck)
             board[y][x] = colorCheck
             for directionX, directionY in directions:
