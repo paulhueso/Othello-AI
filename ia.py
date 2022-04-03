@@ -1,17 +1,21 @@
 import sys
+from time import time
 import board
 import copy
 
 class IA:
     """IA implentation for othello"""
 
-    def __init__(self, color, otherColor, depth = 3, strategy = 1):
+    def __init__(self, color, otherColor, depth = 3, strategy = 1, timeOfThinking = 1000000):
         self.depth = depth
         self.board = board.Board()
         self.color = color
         self.otherColor = otherColor
         self.strategy = strategy
         self.numberOfMoves = 0
+        self.totalNumberNode = 0
+        self.numberNode = 0
+        self.maxTimeBeforeAnswer = timeOfThinking
 
     def heuristic(self, currentBoard):
         mixteStrategy = -1
@@ -110,13 +114,17 @@ class IA:
     def startMinMaxAlphaBeta(self, board, numberOfMoves, display = True):
         self.numberOfMoves = numberOfMoves
         newBoard = copy.deepcopy(board)
+        self.numberNode = 0
+        self.startedTime = time()
         bestMove = self.minmaxAlphaBeta(newBoard, self.depth, -10000000, 10000000, True)
+        self.totalNumberNode += self.numberNode
         if(display):
             print("The AI played the choice n°" + str(bestMove[0]) + " with a score of " + str(bestMove[1]) + ".")
         return bestMove
     
     def minmaxAlphaBeta(self, currentBoard, depth, alpha, beta, maximizePlayer):
-        if(depth == 0):
+        self.numberNode += 1
+        if(depth == 0 or time()-self.startedTime > self.maxTimeBeforeAnswer):
             return (-1, self.heuristic(currentBoard))
         
         if(maximizePlayer):
